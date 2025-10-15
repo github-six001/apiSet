@@ -190,12 +190,13 @@
         }
     </style>
 </head>
+<!--<script src="./../js/survey.js"></script>-->
 <body>
 <div class="container mt-5">
     <h2 class="text-center mb-4">图像调查</h2>
 
     <!-- Login Form -->
-    <div id="login-form" class="card p-4 mx-auto hidden" style="max-width: 500px;">
+    <div id="login-form" class="card p-4 mx-auto" style="max-width: 500px;">
         <h2 class="text-center mb-4">请输入您的信息</h2>
         <div class="mb-3">
             <label for="studentId" class="form-label">姓名</label>
@@ -221,22 +222,22 @@
     </div>
 
     <!-- Survey Section -->
-    <div id="survey-section" class="">
+    <div id="survey-section" class="hidden">
         <div class="progress mb-4">
             <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
         </div>
 
         <div class="image-container text-center mx-auto">
             <div class="image-display">
-                <img id="current-image" src="/placeholder.svg" alt="当前图像" style="max-width: 100%; max-height: 400px;">
+                <img id="current-image" src="./placeholder.svg" alt="当前图像" style="max-width: 100%; max-height: 400px;">
             </div>
         </div>
 
         <div class="mt-3">
-            <div class="d-flex justify-content-center align-items-center gap-2">
-                <label for="image-rating" class="form-label mb-0">请输入标号:</label>
-                <input id="image-rating" class="form-control" style="width: 150px;" min="1" required>
-                <button id="next-question" class="btn btn-primary">下一题</button>
+            <div class="d-flex justify-content-center align-items-center gap-3">
+                <label for="input-number" class="form-label mb-0">锚点对应的标签标号:</label>
+                <input id="input-number" class="form-control" style="width: 180px;" min="1" required placeholder="请输入一个正整数">
+                <button id="next-btn" class="btn btn-primary">下一题</button>
             </div>
         </div>
 
@@ -264,99 +265,90 @@
         const loginForm = document.getElementById('login-form');
         const surveySection = document.getElementById('survey-section');
         const resultsSection = document.getElementById('results-section');
+
         const startSurveyBtn = document.getElementById('start-survey');
+
+        const studentNameInput = document.getElementById('studentName');
         const studentIdInput = document.getElementById('studentId');
+
         const progressBar = document.getElementById('progress-bar');
-        const leftImage = document.getElementById('left-image');
-        const rightImage = document.getElementById('right-image');
-        const leftBetterBtn = document.getElementById('left-better');
-        const equalBtn = document.getElementById('equal');
-        const rightBetterBtn = document.getElementById('right-better');
+        const currentImage = document.getElementById('current-image');
+
+        // 下一题
+        const nextBtn = document.getElementById('next-btn');
+
+        // 当前题目序号
         const currentQuestionEl = document.getElementById('current-question');
+        // 总题数
         const totalQuestionsEl = document.getElementById('total-questions');
+        //用时
         const questionTimeEl = document.getElementById('question-time');
+        // 总用时
         const totalTimeEl = document.getElementById('total-time');
+        // 平均每题用时
         const averageTimeEl = document.getElementById('average-time');
+        // 下载结果按钮
         const downloadResultsBtn = document.getElementById('download-results');
 
         // Survey data
+        let studentName = '';
         let studentId = '';
         let age = 0;
         let gender = '';
-        let imagePairs = [];
+        let images = [];
         let currentPairIndex = 0;
+        let rightNumber = 0;
         let startTime = 0;
         let questionStartTime = 0;
         let totalSurveyTime = 0;
         let questionTimes = [];
         let results = [];
 
-        // Mock data - In a real application, this would be loaded from the server
-        function loadMockData() {
-            // Simulate loading image pairs from different subdirectories
-            const subdirs = ["GCN2_RA_MoE", "GMoE_RA", "GPS_RA_MoE", "LPGT_gussian_old_4stage_60.16", "LPTE_62.60"];
-            const imageNames = ["00024.png", "00205.png", "00208.png", "00361.png", "00510.png", "00513.png", "00585.png", "00706.png", "00744.png", "00804.png", "00834.png"];
 
-            // Create all possible pairs (excluding same subdirectory)
+        // 加载模拟数据 - 从data目录读取单张图片并组织到images目录中
+        function loadMockData() {
+            // 模拟从data目录加载单张图片
+            const subdirs = ["P1"];
+            const imageNames = ["21312_2.png", "Ground_3.png", "Kindermann_6.png", "Ours_5.png"];
+
+            // 清空现有数据
+            images = [];
+
+            // 为每个子目录和图片名组合创建单张图片记录
             for (let i = 0; i < subdirs.length; i++) {
-                for (let j = i + 1; j < subdirs.length; j++) {
-                    for (let k = 0; k < imageNames.length; k++) {
-                        imagePairs.push({
-                            left: {
-                                path: `/data/${subdirs[i]}/${imageNames[k]}`,
-                                subdir: subdirs[i]
-                            },
-                            right: {
-                                path: `/data/${subdirs[j]}/${imageNames[k]}`,
-                                subdir: subdirs[j]
-                            },
-                            name: imageNames[k]
-                        });
-                    }
+                for (let k = 0; k < imageNames.length; k++) {
+                    images.push({
+                        path: `../data/${subdirs[i]}/${imageNames[k]}`,
+                        subdir: subdirs[i],
+                        name: imageNames[k],
+                        answer: imageNames[k].split('_')[1].split('.')[0]
+                    });
                 }
             }
 
-            // 使用真实图片路径
-            imagePairs = imagePairs.map((pair, index) => {
-                // 获取两张图片
-                const pic1 = {
-                    path: `images/${pair.left.subdir.split('/').pop()}/${pair.name}`,
-                    subdir: pair.left.subdir
-                };
-                const pic2 = {
-                    path: `images/${pair.right.subdir.split('/').pop()}/${pair.name}`,
-                    subdir: pair.right.subdir
-                };
-
-                // 随机决定pic1是左还是右
-                const isLeftPic1 = Math.random() < 0.5;
-
-                return {
-                    left: isLeftPic1 ? pic1 : pic2,
-                    right: isLeftPic1 ? pic2 : pic1,
-                    name: pair.name,
-                    isSwapped: !isLeftPic1
-                };
-            });
-            totalQuestionsEl.textContent = imagePairs.length;
+            // 更新题目总数显示
+            totalQuestionsEl.textContent = images.length;
         }
 
-        // Start the survey
+        // 开始调查 按钮的点击事件
         startSurveyBtn.addEventListener('click', function() {
+            studentName = studentNameInput.value.trim();
             studentId = studentIdInput.value.trim();
             age = document.getElementById('age').value.trim();
             gender = document.getElementById('gender').value;
 
+            if (!studentName) {
+                alert('请输入您的姓名');
+                return;
+            }
             if (!studentId) {
                 alert('请输入您的学号');
                 return;
             }
-
             if (!age) {
                 alert('请输入您的年龄');
                 return;
             }
-
             if (!gender) {
                 alert('请选择您的性别');
                 return;
@@ -369,30 +361,29 @@
             }
 
             loadMockData();
+
+            <!-- 隐藏登录信息，显示问卷调查表 -->
             loginForm.classList.add('hidden');
             surveySection.classList.remove('hidden');
-
+            // 记录调查开始时间，用于计算总时间
             startTime = Date.now();
             showCurrentPair();
         });
 
-        // Show the current image pair
+        // 展示图片
         function showCurrentPair() {
-            if (currentPairIndex >= imagePairs.length) {
+            if (currentPairIndex >= images.length) {
                 finishSurvey();
                 return;
             }
 
-            const pair = imagePairs[currentPairIndex];
-            leftImage.src = pair.left.path;
-            rightImage.src = pair.right.path;
+            const pair = images[currentPairIndex];
+            currentImage.src = pair.path;
 
             // 添加淡入效果
-            leftImage.style.opacity = '0';
-            rightImage.style.opacity = '0';
+            currentImage.style.opacity = '0';
             setTimeout(() => {
-                leftImage.style.opacity = '1';
-                rightImage.style.opacity = '1';
+                currentImage.style.opacity = '1';
             }, 50);
 
             currentQuestionEl.textContent = currentPairIndex + 1;
@@ -402,46 +393,28 @@
             updateQuestionTime();
         }
 
-        // Update the timer display
-        function updateQuestionTime() {
-            const elapsedSeconds = Math.floor((Date.now() - questionStartTime) / 1000);
-            questionTimeEl.textContent = elapsedSeconds;
 
-            setTimeout(updateQuestionTime, 1000);
-        }
-
-        // Update progress bar
-        function updateProgressBar() {
-            const progress = ((currentPairIndex) / imagePairs.length) * 100;
-            progressBar.style.width = `${progress}%`;
-            progressBar.textContent = `${Math.round(progress)}%`;
-            progressBar.setAttribute('aria-valuenow', progress);
-        }
-
-        // Handle user selection
-        function handleSelection(choice) {
+        // 下一题按钮点击事件
+        function handleSelection(inputValue) {
             // 添加按钮点击效果
-            const button = choice === 'left' ? leftBetterBtn :
-                        choice === 'right' ? rightBetterBtn :
-                        equalBtn;
-
-            button.style.transform = 'scale(0.95)';
+            nextBtn.style.transform = 'scale(0.95)';
             setTimeout(() => {
-                button.style.transform = '';
+                nextBtn.style.transform = '';
             }, 100);
             const questionEndTime = Date.now();
             const timeSpent = (questionEndTime - questionStartTime) / 1000;
             questionTimes.push(timeSpent);
 
+            if(images[currentPairIndex].answer == inputValue){
+             rightNumber++;
+            }
             results.push({
-                studentId: studentId,
                 questionNumber: currentPairIndex + 1,
-                leftImage: imagePairs[currentPairIndex].left.path,
-                rightImage: imagePairs[currentPairIndex].right.path,
-                imageName: imagePairs[currentPairIndex].name,
-                leftSubdir: imagePairs[currentPairIndex].left.subdir,
-                rightSubdir: imagePairs[currentPairIndex].right.subdir,
-                choice: choice,
+                imagePath: images[currentPairIndex].path,
+                imageName: images[currentPairIndex].name,
+                inputValue: inputValue,
+                answer: images[currentPairIndex].answer,
+                flag: images[currentPairIndex].answer == inputValue ? '回答正确' : '回答错误',
                 timeSpent: timeSpent
             });
 
@@ -449,36 +422,65 @@
             showCurrentPair();
         }
 
-        leftBetterBtn.addEventListener('click', function() {
-            handleSelection('left');
+        // 验证输入是否为正整数，否则提示错误
+        nextBtn.addEventListener('click', function() {
+            const inputValue = document.getElementById('input-number').value.trim();
+                // 添加必填校验
+            if (!/^[1-9]\d*$/.test(inputValue)) {
+                alert('请输入锚点对应的标签标号');
+                return;
+            }
+            handleSelection(inputValue);
+            // 清空输入框的值
+            document.getElementById('input-number').value = '';
+
+           if (currentPairIndex < images.length-1) {
+            nextBtn.textContent = '下一题';
+            } else {
+            nextBtn.textContent = '提交';
+            }
         });
 
-        equalBtn.addEventListener('click', function() {
-            handleSelection('equal');
-        });
+        // 更新进度条
+        function updateProgressBar() {
+            const progress = ((currentPairIndex) / images.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressBar.textContent = `${Math.round(progress)}%`;
+            progressBar.setAttribute('aria-valuenow', progress);
+        }
 
-        rightBetterBtn.addEventListener('click', function() {
-            handleSelection('right');
-        });
+        // 更新当前题目答题时间
+        function updateQuestionTime() {
+            const elapsedSeconds = Math.floor((Date.now() - questionStartTime) / 1000);
+            questionTimeEl.textContent = elapsedSeconds;
 
-        // Finish the survey
+            setTimeout(updateQuestionTime, 1000);
+        }
+
+        // 调查结束（隐藏问卷调查表，显示问卷调查结果信息）
         function finishSurvey() {
             surveySection.classList.add('hidden');
             resultsSection.classList.remove('hidden');
 
+            // 问卷调查结束时间 - 开始问卷调查时间
             totalSurveyTime = (Date.now() - startTime) / 1000;
             totalTimeEl.textContent = totalSurveyTime.toFixed(2);
 
+            // 计算平均时间（每个图片的耗时之和/图片数量）
             const avgTime = questionTimes.reduce((a, b) => a + b, 0) / questionTimes.length;
             averageTimeEl.textContent = avgTime.toFixed(2);
         }
 
-        // Download results
+
+        // 下载调查结果
         downloadResultsBtn.addEventListener('click', function() {
             const resultsData = {
+                studentName: studentName,
                 studentId: studentId,
                 age: age,
                 gender: gender,
+                rightNumber: rightNumber,
+                totalNumber: images.length,
                 totalTime: totalSurveyTime,
                 averageTime: questionTimes.reduce((a, b) => a + b, 0) / questionTimes.length,
                 responses: results
@@ -487,13 +489,16 @@
             const dataStr = JSON.stringify(resultsData, null, 2);
             const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
 
-            const exportFileDefaultName = `survey_results_${studentId}_${new Date().toISOString().slice(0,10)}.json`;
+            const exportFileDefaultName = `results_${studentId}_${new Date().toISOString().slice(0,10)}.json`;
 
             const linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri);
             linkElement.setAttribute('download', exportFileDefaultName);
             linkElement.click();
         });
+
+
+
     });
 </script>
 </body>

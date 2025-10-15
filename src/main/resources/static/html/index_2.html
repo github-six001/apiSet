@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Comparison Survey</title>
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #67c23a;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #2c3e50;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            padding: 2rem;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-container {
+            width: 450px;
+            height: 450px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            background-color: white;
+            transition: transform 0.3s ease;
+        }
+
+        .image-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .image-container img {
+            border-radius: var(--border-radius);
+        }
+
+        .comparison-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+
+        .image-container {
+            width: 450px;
+            height: 450px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            background-color: white;
+            transition: transform 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: var(--border-radius);
+            transition: opacity 0.3s ease;
+        }
+
+        .option-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .option-buttons button {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .option-buttons button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--box-shadow);
+        }
+
+        #left-better, #right-better {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        #left-better:hover, #right-better:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #equal {
+            border-color: #909399;
+        }
+
+        #equal:hover {
+            background-color: #909399;
+            color: white;
+        }
+
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            background-color: #e9ecef;
+            margin: 2rem 0;
+        }
+
+        .progress-bar {
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        #login-form {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2rem;
+        }
+
+        #login-form h2 {
+            color: var(--primary-color);
+        }
+
+        #start-survey {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        #start-survey:hover {
+            background-color: #357abd;
+            transform: translateY(-2px);
+            box-shadow: var(--box-shadow);
+        }
+
+        #results-section {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        #download-results {
+            background-color: var(--secondary-color);
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        #download-results:hover {
+            background-color: #5aab31;
+            transform: translateY(-2px);
+            box-shadow: var(--box-shadow);
+        }
+
+        .hidden {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .visible {
+            opacity: 1;
+        }
+    </style>
+</head>
+<!--<script src="./../js/survey.js"></script>-->
+<body>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">图像调查</h2>
+
+    <!-- Login Form -->
+    <div id="login-form" class="card p-4 mx-auto" style="max-width: 500px;">
+        <h2 class="text-center mb-4">请输入您的信息</h2>
+        <div class="mb-3">
+            <label for="studentId" class="form-label">姓名</label>
+            <input type="text" class="form-control" id="studentName" required>
+        </div>
+        <div class="mb-3">
+            <label for="studentId" class="form-label">学号</label>
+            <input type="text" class="form-control" id="studentId" required>
+        </div>
+        <div class="mb-3">
+            <label for="age" class="form-label">年龄</label>
+            <input type="number" class="form-control" id="age" min="18" max="100" required>
+        </div>
+        <div class="mb-3">
+            <label for="gender" class="form-label">性别</label>
+            <select class="form-select" id="gender" required>
+                <option value="" selected disabled>请选择</option>
+                <option value="male">男</option>
+                <option value="female">女</option>
+            </select>
+        </div>
+        <button id="start-survey" class="btn btn-primary">开始调查</button>
+    </div>
+
+    <!-- Survey Section -->
+    <div id="survey-section" class="hidden">
+        <div class="progress mb-4">
+            <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+        </div>
+
+        <div class="image-container text-center mx-auto">
+            <div class="image-display">
+                <img id="current-image" src="./placeholder.svg" alt="当前图像" style="max-width: 100%; max-height: 400px;">
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <div class="d-flex justify-content-center align-items-center gap-3">
+                <label for="input-number" class="form-label mb-0">锚点对应的标签标号差值:</label>
+                <input id="input-number" class="form-control" style="width: 180px;" min="1" required placeholder="请输入一个正整数">
+                <button id="next-btn" class="btn btn-primary">下一题</button>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <p>当前题目: <span id="current-question">1</span> / <span id="total-questions">0</span></p>
+            <p>用时: <span id="question-time">0</span> 秒</p>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results-section" class="hidden text-center">
+        <h2>问卷已完成</h2>
+        <p>感谢您的参与！</p>
+        <div id="results-summary" class="mt-4">
+            <p>总用时: <span id="total-time">0</span> 秒</p>
+            <p>平均每题用时: <span id="average-time">0</span> 秒</p>
+        </div>
+        <button id="download-results" class="btn btn-success mt-3">下载结果</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const loginForm = document.getElementById('login-form');
+        const surveySection = document.getElementById('survey-section');
+        const resultsSection = document.getElementById('results-section');
+
+        const startSurveyBtn = document.getElementById('start-survey');
+
+        const studentNameInput = document.getElementById('studentName');
+        const studentIdInput = document.getElementById('studentId');
+
+        const progressBar = document.getElementById('progress-bar');
+        const currentImage = document.getElementById('current-image');
+
+        // 下一题
+        const nextBtn = document.getElementById('next-btn');
+
+        // 当前题目序号
+        const currentQuestionEl = document.getElementById('current-question');
+        // 总题数
+        const totalQuestionsEl = document.getElementById('total-questions');
+        //用时
+        const questionTimeEl = document.getElementById('question-time');
+        // 总用时
+        const totalTimeEl = document.getElementById('total-time');
+        // 平均每题用时
+        const averageTimeEl = document.getElementById('average-time');
+        // 下载结果按钮
+        const downloadResultsBtn = document.getElementById('download-results');
+
+        // Survey data
+        let studentName = '';
+        let studentId = '';
+        let age = 0;
+        let gender = '';
+        let images = [];
+        let currentPairIndex = 0;
+        let rightNumber = 0;
+        let startTime = 0;
+        let questionStartTime = 0;
+        let totalSurveyTime = 0;
+        let questionTimes = [];
+        let results = [];
+
+
+        // 加载模拟数据 - 从data目录读取单张图片并组织到images目录中
+        function loadMockData() {
+            // 模拟从data目录加载单张图片
+            const subdirs = ["P2"];
+            const imageNames = ["21312_2.png", "Ground_3.png", "Kindermann_6.png", "Ours_5.png"];
+
+            // 清空现有数据
+            images = [];
+
+            // 为每个子目录和图片名组合创建单张图片记录
+            for (let i = 0; i < subdirs.length; i++) {
+                for (let k = 0; k < imageNames.length; k++) {
+                    images.push({
+                        path: `../data/${subdirs[i]}/${imageNames[k]}`,
+                        subdir: subdirs[i],
+                        name: imageNames[k],
+                        answer: imageNames[k].split('_')[1].split('.')[0]
+                    });
+                }
+            }
+
+            // 更新题目总数显示
+            totalQuestionsEl.textContent = images.length;
+        }
+
+        // 开始调查 按钮的点击事件
+        startSurveyBtn.addEventListener('click', function() {
+            studentName = studentNameInput.value.trim();
+            studentId = studentIdInput.value.trim();
+            age = document.getElementById('age').value.trim();
+            gender = document.getElementById('gender').value;
+
+            if (!studentName) {
+                alert('请输入您的姓名');
+                return;
+            }
+            if (!studentId) {
+                alert('请输入您的学号');
+                return;
+            }
+            if (!age) {
+                alert('请输入您的年龄');
+                return;
+            }
+            if (!gender) {
+                alert('请选择您的性别');
+                return;
+            }
+
+            // 添加提示框，告知用户需要一口气完成测试
+            const confirmStart = confirm('请注意：建议您一口气完成所有测试题目。中途关闭网页会导致进度丢失，需要重新答题。是否继续？');
+            if (!confirmStart) {
+                return;
+            }
+
+            loadMockData();
+
+            <!-- 隐藏登录信息，显示问卷调查表 -->
+            loginForm.classList.add('hidden');
+            surveySection.classList.remove('hidden');
+            // 记录调查开始时间，用于计算总时间
+            startTime = Date.now();
+            showCurrentPair();
+        });
+
+        // 展示图片
+        function showCurrentPair() {
+            if (currentPairIndex >= images.length) {
+                finishSurvey();
+                return;
+            }
+
+            const pair = images[currentPairIndex];
+            currentImage.src = pair.path;
+
+            // 添加淡入效果
+            currentImage.style.opacity = '0';
+            setTimeout(() => {
+                currentImage.style.opacity = '1';
+            }, 50);
+
+            currentQuestionEl.textContent = currentPairIndex + 1;
+            updateProgressBar();
+
+            questionStartTime = Date.now();
+            updateQuestionTime();
+        }
+
+
+        // 下一题按钮点击事件
+        function handleSelection(inputValue) {
+            // 添加按钮点击效果
+            nextBtn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                nextBtn.style.transform = '';
+            }, 100);
+            const questionEndTime = Date.now();
+            const timeSpent = (questionEndTime - questionStartTime) / 1000;
+            questionTimes.push(timeSpent);
+
+            if(images[currentPairIndex].answer == inputValue){
+             rightNumber++;
+            }
+            results.push({
+                questionNumber: currentPairIndex + 1,
+                imagePath: images[currentPairIndex].path,
+                imageName: images[currentPairIndex].name,
+                inputValue: inputValue,
+                answer: images[currentPairIndex].answer,
+                flag: images[currentPairIndex].answer == inputValue ? '回答正确' : '回答错误',
+                timeSpent: timeSpent
+            });
+
+            currentPairIndex++;
+            showCurrentPair();
+        }
+
+        // 验证输入是否为正整数，否则提示错误
+        nextBtn.addEventListener('click', function() {
+            const inputValue = document.getElementById('input-number').value.trim();
+                // 添加必填校验
+            if (!/^[1-9]\d*$/.test(inputValue)) {
+                alert('请输入锚点对应的标签标号');
+                return;
+            }
+            handleSelection(inputValue);
+            // 清空输入框的值
+            document.getElementById('input-number').value = '';
+
+           if (currentPairIndex < images.length-1) {
+            nextBtn.textContent = '下一题';
+            } else {
+            nextBtn.textContent = '提交';
+            }
+        });
+
+        // 更新进度条
+        function updateProgressBar() {
+            const progress = ((currentPairIndex) / images.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressBar.textContent = `${Math.round(progress)}%`;
+            progressBar.setAttribute('aria-valuenow', progress);
+        }
+
+        // 更新当前题目答题时间
+        function updateQuestionTime() {
+            const elapsedSeconds = Math.floor((Date.now() - questionStartTime) / 1000);
+            questionTimeEl.textContent = elapsedSeconds;
+
+            setTimeout(updateQuestionTime, 1000);
+        }
+
+        // 调查结束（隐藏问卷调查表，显示问卷调查结果信息）
+        function finishSurvey() {
+            surveySection.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+
+            // 问卷调查结束时间 - 开始问卷调查时间
+            totalSurveyTime = (Date.now() - startTime) / 1000;
+            totalTimeEl.textContent = totalSurveyTime.toFixed(2);
+
+            // 计算平均时间（每个图片的耗时之和/图片数量）
+            const avgTime = questionTimes.reduce((a, b) => a + b, 0) / questionTimes.length;
+            averageTimeEl.textContent = avgTime.toFixed(2);
+        }
+
+
+        // 下载调查结果
+        downloadResultsBtn.addEventListener('click', function() {
+            const resultsData = {
+                studentName: studentName,
+                studentId: studentId,
+                age: age,
+                gender: gender,
+                rightNumber: rightNumber,
+                totalNumber: images.length,
+                totalTime: totalSurveyTime,
+                averageTime: questionTimes.reduce((a, b) => a + b, 0) / questionTimes.length,
+                responses: results
+            };
+
+            const dataStr = JSON.stringify(resultsData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+
+            const exportFileDefaultName = `results_${studentId}_${new Date().toISOString().slice(0,10)}.json`;
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        });
+
+
+
+    });
+</script>
+</body>
+</html>
+
