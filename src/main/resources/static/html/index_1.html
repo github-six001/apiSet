@@ -20,7 +20,8 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 100%;
+            max-height: 100%;
             padding: 2rem;
         }
 
@@ -29,15 +30,6 @@
             font-size: 2.5rem;
             margin-bottom: 2rem;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-        }
-
-        .image-container {
-            width: 450px;
-            height: 450px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            background-color: white;
-            transition: transform 0.3s ease;
         }
 
         .image-container:hover {
@@ -56,8 +48,8 @@
         }
 
         .image-container {
-            width: 450px;
-            height: 450px;
+            width: 100%;
+            height: 960px;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
             background-color: white;
@@ -111,15 +103,6 @@
             color: white;
         }
 
-        #equal {
-            border-color: #909399;
-        }
-
-        #equal:hover {
-            background-color: #909399;
-            color: white;
-        }
-
         .progress {
             height: 10px;
             border-radius: 5px;
@@ -157,6 +140,21 @@
             box-shadow: var(--box-shadow);
         }
 
+        /* Survey Section */
+        #survey-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        #current-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: var(--border-radius);
+            transition: opacity 0.3s ease;
+        }
+
         #results-section {
             background-color: white;
             border-radius: var(--border-radius);
@@ -180,7 +178,7 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -228,7 +226,7 @@
 
         <div class="image-container text-center mx-auto">
             <div class="image-display">
-                <img id="current-image" src="./placeholder.svg" alt="当前图像" style="max-width: 100%; max-height: 400px;">
+                <img id="current-image" src="./placeholder.svg" alt="当前图像" style="max-width: 100%; max-height: 100%;">
             </div>
         </div>
 
