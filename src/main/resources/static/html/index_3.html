@@ -190,7 +190,6 @@
         }
     </style>
 </head>
-<!--<script src="./../js/survey.js"></script>-->
 <body>
 <div class="container mt-5">
     <h2 class="text-center mb-4">图像调查</h2>
@@ -199,7 +198,7 @@
     <div id="login-form" class="card p-4 mx-auto" style="max-width: 500px;">
         <h2 class="text-center mb-4">请输入您的信息</h2>
         <div class="mb-3">
-            <label for="studentId" class="form-label">姓名</label>
+            <label for="studentName" class="form-label">姓名</label>
             <input type="text" class="form-control" id="studentName" required>
         </div>
         <div class="mb-3">
@@ -233,13 +232,27 @@
             </div>
         </div>
 
-        <div class="mt-3">
+        <div id="answer-input" class="mt-3">
             <div class="d-flex justify-content-center align-items-center gap-3">
                 <label for="input-number" class="form-label mb-0">拐点总个数:</label>
                 <input id="input-number" class="form-control" style="width: 180px;" min="1" required placeholder="请输入一个正整数">
                 <button id="next-btn" class="btn btn-primary">下一题</button>
             </div>
         </div>
+
+        <div id="question-level" class="mt-3 hidden">
+            <div class="d-flex justify-content-center align-items-center gap-2">
+                <label  class="form-label mb-0">题目难度:</label>
+                <button class="btn btn-outline-primary" style="min-width: 80px;" data-level="1">非常简单</button>
+                <button class="btn btn-outline-primary" style="min-width: 80px;" data-level="2">简单</button>
+                <button class="btn btn-outline-primary" style="min-width: 80px;" data-level="3">较简单</button>
+                <button class="btn btn-outline-primary" style="min-width: 80px;" data-level="4">中等</button>
+                <button class="btn btn-outline-primary" style="min-width: 80px;" data-level="5">较难</button>
+                <button class="btn btn-outline-primary" style="min-width: 80px;" data-level="6">困难</button>
+                <button class="btn btn-outline-primary" style="min-width: 80px;" data-level="7">非常困难</button>
+            </div>
+        </div>
+
 
         <div class="text-center">
             <p>当前题目: <span id="current-question">1</span> / <span id="total-questions">0</span></p>
@@ -265,6 +278,9 @@
         const loginForm = document.getElementById('login-form');
         const surveySection = document.getElementById('survey-section');
         const resultsSection = document.getElementById('results-section');
+
+        const answerSection = document.getElementById('answer-input');
+        const questionSection = document.getElementById('question-level');
 
         const startSurveyBtn = document.getElementById('start-survey');
 
@@ -303,32 +319,6 @@
         let totalSurveyTime = 0;
         let questionTimes = [];
         let results = [];
-
-
-        // 加载模拟数据 - 从data目录读取单张图片并组织到images目录中
-        function loadMockData() {
-            // 模拟从data目录加载单张图片
-            const subdirs = ["P3"];
-            const imageNames = ["21312_2.png", "Ground_3.png", "Kindermann_6.png", "Ours_5.png"];
-
-            // 清空现有数据
-            images = [];
-
-            // 为每个子目录和图片名组合创建单张图片记录
-            for (let i = 0; i < subdirs.length; i++) {
-                for (let k = 0; k < imageNames.length; k++) {
-                    images.push({
-                        path: `../data/${subdirs[i]}/${imageNames[k]}`,
-                        subdir: subdirs[i],
-                        name: imageNames[k],
-                        answer: imageNames[k].split('_')[1].split('.')[0]
-                    });
-                }
-            }
-
-            // 更新题目总数显示
-            totalQuestionsEl.textContent = images.length;
-        }
 
         // 开始调查 按钮的点击事件
         startSurveyBtn.addEventListener('click', function() {
@@ -370,60 +360,7 @@
             showCurrentPair();
         });
 
-        // 展示图片
-        function showCurrentPair() {
-            if (currentPairIndex >= images.length) {
-                finishSurvey();
-                return;
-            }
-
-            const pair = images[currentPairIndex];
-            currentImage.src = pair.path;
-
-            // 添加淡入效果
-            currentImage.style.opacity = '0';
-            setTimeout(() => {
-                currentImage.style.opacity = '1';
-            }, 50);
-
-            currentQuestionEl.textContent = currentPairIndex + 1;
-            updateProgressBar();
-
-            questionStartTime = Date.now();
-            updateQuestionTime();
-        }
-
-
-        // 下一题按钮点击事件
-        function handleSelection(inputValue) {
-            // 添加按钮点击效果
-            nextBtn.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                nextBtn.style.transform = '';
-            }, 100);
-            const questionEndTime = Date.now();
-            const timeSpent = (questionEndTime - questionStartTime) / 1000;
-            questionTimes.push(timeSpent);
-
-            if(images[currentPairIndex].answer == inputValue){
-             rightNumber++;
-            }
-            results.push({
-                questionNumber: currentPairIndex + 1,
-                imagePath: images[currentPairIndex].path,
-                imageName: images[currentPairIndex].name,
-                inputValue: inputValue,
-                answer: images[currentPairIndex].answer,
-                flag: images[currentPairIndex].answer == inputValue ? '回答正确' : '回答错误',
-                timeSpent: timeSpent
-            });
-
-            currentPairIndex++;
-
-            showCurrentPair();
-        }
-
-        // 验证输入是否为正整数，否则提示错误
+        // 下一题按钮的点击事件
         nextBtn.addEventListener('click', function() {
             const inputValue = document.getElementById('input-number').value.trim();
                 // 添加必填校验
@@ -441,6 +378,82 @@
             nextBtn.textContent = '提交';
             }
         });
+
+        // 困难度选择的点击事件
+        document.querySelectorAll('#question-level button').forEach(button => {
+            button.addEventListener('click', function() {
+                const level = parseInt(this.getAttribute('data-level'));
+                levelSelection(level);
+            });
+        });
+
+        // 下载调查结果
+        downloadResultsBtn.addEventListener('click', function() {
+            const resultsData = {
+                studentName: studentName,
+                studentId: studentId,
+                age: age,
+                gender: gender,
+                rightNumber: rightNumber,
+                totalNumber: images.length,
+                totalTime: totalSurveyTime,
+                averageTime: questionTimes.reduce((a, b) => a + b, 0) / questionTimes.length,
+                responses: results
+            };
+
+            const dataStr = JSON.stringify(resultsData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+
+            const exportFileDefaultName = `results_${studentId}_${new Date().toISOString().slice(0,10)}.json`;
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        });
+
+        // 数组随机排列函数
+        function shuffleArray(array) {
+            // 创建数组副本，避免修改原数组
+            const shuffled = [...array];
+            // Fisher-Yates 洗牌算法
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+        // 加载模拟数据 - 从data目录读取单张图片并组织到images目录中
+        function loadMockData() {
+            // 模拟从data目录加载单张图片
+            const subdirs = ["P3"];
+            const imageNames = ["00138_l_s_g_5.png", "00138_l_s_k_5.png", "00138_l_s_o_5.png",
+                                "00477_h_s_g_8.png","00477_h_s_k_8.png","00477_h_s_o_8.png",
+                                "00492_l_s_g_6.png","00492_l_s_k_6.png","00492_l_s_o_6.png",
+                                "00686_h_s_g_14.png","00686_h_s_k_14.png","00686_h_s_o_20.png",
+                                "00722_l_s_g_14.png","00722_l_s_k_5.png","00722_l_s_o_10.png",
+                                "00723_h_s_g_10.png","00723_h_s_k_11.png","00723_h_s_o_16.png"];
+
+            // 清空现有数据
+            images = [];
+
+            // 对imageNames进行随机排序
+            const shuffledImageNames = shuffleArray(imageNames);
+
+            // 为每个子目录和图片名组合创建单张图片记录
+            for (let i = 0; i < subdirs.length; i++) {
+                for (let k = 0; k < shuffledImageNames.length; k++) {
+                    images.push({
+                        path: `../data/${subdirs[i]}/${shuffledImageNames[k]}`,
+                        subdir: subdirs[i],
+                        name: shuffledImageNames[k],
+                        answer: shuffledImageNames[k].split('_')[3].split('.')[0]
+                    });
+                }
+            }
+            // 更新题目总数显示
+            totalQuestionsEl.textContent = images.length;
+        }
 
         // 更新进度条
         function updateProgressBar() {
@@ -472,33 +485,70 @@
             averageTimeEl.textContent = avgTime.toFixed(2);
         }
 
+        // 困难度选择
+        function levelSelection(choice) {
+            if (results[currentPairIndex]) {
+                // 如果该题目的结果对象已存在，直接更新
+                results[currentPairIndex].level = choice;
+            }
 
-        // 下载调查结果
-        downloadResultsBtn.addEventListener('click', function() {
-            const resultsData = {
-                studentName: studentName,
-                studentId: studentId,
-                age: age,
-                gender: gender,
-                rightNumber: rightNumber,
-                totalNumber: images.length,
-                totalTime: totalSurveyTime,
-                averageTime: questionTimes.reduce((a, b) => a + b, 0) / questionTimes.length,
-                responses: results
-            };
+            questionSection.classList.add('hidden');
+            answerSection.classList.remove('hidden');
 
-            const dataStr = JSON.stringify(resultsData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            currentPairIndex++;
+            showCurrentPair();
+        }
 
-            const exportFileDefaultName = `results_${studentId}_${new Date().toISOString().slice(0,10)}.json`;
+        // 下一题按钮点击事件
+        function handleSelection(inputValue) {
+            // 添加按钮点击效果
+            nextBtn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                nextBtn.style.transform = '';
+            }, 100);
+            const questionEndTime = Date.now();
+            const timeSpent = (questionEndTime - questionStartTime) / 1000;
+            questionTimes.push(timeSpent);
 
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-        });
+            if(images[currentPairIndex].answer == inputValue){
+             rightNumber++;
+            }
+            results.push({
+                questionNumber: currentPairIndex + 1,
+                imagePath: images[currentPairIndex].path,
+                imageName: images[currentPairIndex].name,
+                inputValue: inputValue,
+                answer: images[currentPairIndex].answer,
+                flag: images[currentPairIndex].answer == inputValue ? '回答正确' : '回答错误',
+                timeSpent: timeSpent
+            });
 
+            answerSection.classList.add('hidden');
+            questionSection.classList.remove('hidden');
+        }
 
+        // 展示图片
+        function showCurrentPair() {
+            if (currentPairIndex >= images.length) {
+                finishSurvey();
+                return;
+            }
+
+            const pair = images[currentPairIndex];
+            currentImage.src = pair.path;
+
+            // 添加淡入效果
+            currentImage.style.opacity = '0';
+            setTimeout(() => {
+                currentImage.style.opacity = '1';
+            }, 50);
+
+            currentQuestionEl.textContent = currentPairIndex + 1;
+            updateProgressBar();
+
+            questionStartTime = Date.now();
+            updateQuestionTime();
+        }
 
     });
 </script>
