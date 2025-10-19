@@ -191,7 +191,7 @@
 </head>
 <body>
 <div class="container mt-5">
-    <h2 class="text-center mb-4">图像调查</h2>
+    <h2 id="main-h2" class="text-center mb-4">图像调查</h2>
 
     <!-- Login Form -->
     <div id="login-form" class="card p-4 mx-auto" style="max-width: 500px;">
@@ -217,6 +217,30 @@
             </select>
         </div>
         <button id="start-survey" class="btn btn-primary">开始调查</button>
+    </div>
+
+
+    <!--test Survey Section -->
+    <div id="test-survey-section" class="hidden">
+
+        <div class="image-container text-center mx-auto">
+            <div class="image-display">
+                <img id="test-current-image" src="../data/P3/p3-test.png" alt="当前图像" style="max-width: 100%; max-height: 100%;">
+            </div>
+        </div>
+
+        <div id="test-answer-input" class="mt-3">
+            <div class="d-flex justify-content-center align-items-center gap-3">
+                <label for="test-input-number" class="form-label mb-0">锚点对应的标签标号:</label>
+                <input id="test-input-number" class="form-control" style="width: 180px;" min="1" required placeholder="请输入一个正整数">
+                <button id="test-next-btn" class="btn btn-primary">正式开始</button>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <p>当前题目: <span id="test-current-question">1</span> / <span id="test-total-questions">1</span></p>
+            <p>提示: 按住ctrl + 滚轮可调整页面显示大小（当前图片仅做页面大小调试）</p>
+        </div>
     </div>
 
     <!-- Survey Section -->
@@ -276,6 +300,7 @@
         // Elements
         const loginForm = document.getElementById('login-form');
         const surveySection = document.getElementById('survey-section');
+        const testSurveySection = document.getElementById('test-survey-section');
         const resultsSection = document.getElementById('results-section');
 
         const answerSection = document.getElementById('answer-input');
@@ -291,6 +316,8 @@
 
         // 下一题
         const nextBtn = document.getElementById('next-btn');
+        const testNextBtn = document.getElementById('test-next-btn');
+
 
         // 当前题目序号
         const currentQuestionEl = document.getElementById('current-question');
@@ -321,6 +348,7 @@
 
         // 开始调查 按钮的点击事件
         startSurveyBtn.addEventListener('click', function() {
+            document.getElementById('main-h2').textContent = '测试图像';
             studentName = studentNameInput.value.trim();
             studentId = studentIdInput.value.trim();
             age = document.getElementById('age').value.trim();
@@ -351,12 +379,10 @@
 
             loadMockData();
 
-            <!-- 隐藏登录信息，显示问卷调查表 -->
+            <!-- 隐藏登录信息-->
             loginForm.classList.add('hidden');
-            surveySection.classList.remove('hidden');
-            // 记录调查开始时间，用于计算总时间
-            startTime = Date.now();
-            showCurrentPair();
+
+            testSurveySection.classList.remove('hidden');
         });
 
         // 下一题按钮的点击事件
@@ -376,6 +402,24 @@
             } else {
             nextBtn.textContent = '提交';
             }
+        });
+
+        // 正式开始按钮的点击事件
+        testNextBtn.addEventListener('click', function() {
+            const testInputValue = document.getElementById('test-input-number').value.trim();
+                // 添加必填校验
+            if (!/^[1-9]\d*$/.test(testInputValue)) {
+                alert('请输入锚点对应的标签标号');
+                return;
+            }
+            // 清空输入框的值
+            document.getElementById('test-input-number').value = '';
+            document.getElementById('main-h2').textContent = '图像调查';
+            testSurveySection.classList.add('hidden');
+            surveySection.classList.remove('hidden');
+            // 记录调查开始时间，用于计算总时间
+            startTime = Date.now();
+            showCurrentPair();
         });
 
         // 困难度选择的点击事件
@@ -446,7 +490,7 @@
                         path: `../data/${subdirs[i]}/${shuffledImageNames[k]}`,
                         subdir: subdirs[i],
                         name: shuffledImageNames[k],
-                        answer: shuffledImageNames[k].split('_')[3].split('.')[0]
+                        answer: shuffledImageNames[k].split('_')[4].split('.')[0]
                     });
                 }
             }
